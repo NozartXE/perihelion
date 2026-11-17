@@ -47,7 +47,7 @@ function saveBestIfEnded() {
   }
 }
 
-if (shot === 'start' || shot === 'play' || shot === 'end') {
+if (shot === 'start' || shot === 'play' || shot === 'end' || shot === 'won') {
   stageShot(shot, world, level);
   previousScreen = world.screen;
   updateStatus();

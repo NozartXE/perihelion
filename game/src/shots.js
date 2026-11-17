@@ -96,5 +96,14 @@ export function stageShot(name, world, levelIndex = null) {
     for (let i = 0; i < totalSteps + 2 && world.screen === 'play'; i += 1) world.step();
     return { screen: world.screen };
   }
+  if (name === 'won') {
+    // Clear every system through the same solver flight and world transitions as play.
+    for (let level = 0; level < LEVELS.length; level += 1) {
+      const totalSteps = startSolverFlight(world);
+      for (let i = 0; i < totalSteps + 2 && world.screen === 'play'; i += 1) world.step();
+      if (level < LEVELS.length - 1) world.confirm();
+    }
+    return { screen: world.screen };
+  }
   throw new RangeError(`Unknown screenshot scene: ${name}`);
 }
