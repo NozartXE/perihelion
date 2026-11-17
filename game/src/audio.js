@@ -74,6 +74,7 @@ export function createAudio() {
       tone(1760, 'sine', 0.06, 0.06, 1760);
     },
     crash() { noiseBurst(0.3); tone(70, 'sine', 0, 0.3, 48); },
+    surge() { tone(90, 'sawtooth', 0, 0.8, 420, 0.65); noiseBurst(0.55); },
     portal() {
       tone(660, 'sine', 0, 0.13);
       tone(880, 'sine', 0.11, 0.13);

@@ -13,7 +13,7 @@ VESPER, a little survey probe, is lost ten systems from home. VORATH, the Hollow
 Across ten systems, each launch brings a new twist:
 - Thread orbiting worlds and asteroid belts.
 - Use a negative-gravity repulsor, then cross one-way wormholes and pass ordered gates.
-- Face the singularity VORATH, with per-system art palettes and distinct planet kinds.
+- Face VORATH in a two-phase finale: thread the first ring, then VORATH surges and its pull strengthens; thread a second ring to open the portal.
 - Earn star ratings for precise launches; generated WebAudio gives each run its sound.
 
 Controls: mouse drag to aim and launch, Enter to continue, R to restart, P to pause, and M to mute.

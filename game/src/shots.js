@@ -87,8 +87,14 @@ export function stageShot(name, world, levelIndex = null) {
   }
   if (name === 'play') {
     const totalSteps = startSolverFlight(world);
-    const target = Math.max(1, Math.floor(totalSteps * 0.58));
-    for (let i = 0; i < target && world.screen === 'play' && world.phase === 'fly'; i += 1) world.step();
+    if (world.level().surge) {
+      for (let i = 0; i < totalSteps && world.screen === 'play' && world.phase === 'fly' && world.flight.phase !== 2; i += 1) world.step();
+      const target = Math.floor(Math.max(0, totalSteps - (world.flight?.steps || totalSteps)) * 0.45);
+      for (let i = 0; i < target && world.screen === 'play' && world.phase === 'fly'; i += 1) world.step();
+    } else {
+      const target = Math.max(1, Math.floor(totalSteps * 0.58));
+      for (let i = 0; i < target && world.screen === 'play' && world.phase === 'fly'; i += 1) world.step();
+    }
     return { screen: 'play' };
   }
   if (name === 'end') {

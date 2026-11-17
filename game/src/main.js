@@ -31,6 +31,7 @@ function playEvents(events) {
   for (const event of events) {
     if (event === 'launch') audio.launch();
     else if (event === 'star') audio.star();
+    else if (event === 'surge') audio.surge();
     else if (event === 'crash' || event === 'lost') audio.crash();
     else if (event === 'portal') audio.portal();
     else if (event === 'wormhole') audio.portal();
