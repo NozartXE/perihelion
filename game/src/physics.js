@@ -7,16 +7,24 @@ export const EVENT_LOST = 3;
 export const STAR_PICKUP_RADIUS = 16;
 const SAMPLE_EVERY = 6;
 
-export function createFlight(level, vx, vy) {
-  return { x: level.launcher.x, y: level.launcher.y, vx, vy, steps: 0, alive: true, collected: new Set() };
+export function planetPosition(planet, step) {
+  if (!planet.orbit) return { x: planet.x, y: planet.y };
+  const angle = planet.orbit.phase + planet.orbit.speed * step * STEP;
+  return { x: planet.x + Math.cos(angle) * planet.orbit.radius, y: planet.y + Math.sin(angle) * planet.orbit.radius };
 }
 
-export function accelerationAt(level, x, y) {
+export function createFlight(level, vx, vy) {
+  return { x: level.launcher.x, y: level.launcher.y, vx, vy, steps: 0, alive: true,
+    collected: new Set(), gatesPassed: 0, wormholeCooldown: 0, events: [] };
+}
+
+export function accelerationAt(level, x, y, step = 0) {
   let ax = 0;
   let ay = 0;
   for (const planet of level.planets) {
-    const dx = planet.x - x;
-    const dy = planet.y - y;
+    const position = planetPosition(planet, step);
+    const dx = position.x - x;
+    const dy = position.y - y;
     const distance = Math.max(Math.hypot(dx, dy), planet.r);
     const scale = planet.mu / (distance * distance * distance);
     ax += dx * scale;
@@ -27,7 +35,8 @@ export function accelerationAt(level, x, y) {
 
 export function stepFlight(level, flight, dt = STEP) {
   if (!flight.alive) return EVENT_NONE;
-  const { ax, ay } = accelerationAt(level, flight.x, flight.y);
+  if (flight.wormholeCooldown > 0) flight.wormholeCooldown -= 1;
+  const { ax, ay } = accelerationAt(level, flight.x, flight.y, flight.steps);
   flight.vx += ax * dt;
   flight.vy += ay * dt;
   flight.x += flight.vx * dt;
@@ -36,7 +45,14 @@ export function stepFlight(level, flight, dt = STEP) {
 
   // Check collisions before portal capture so a planet occludes its own vicinity.
   for (const planet of level.planets) {
-    if (Math.hypot(flight.x - planet.x, flight.y - planet.y) < planet.r + PROBE.radius * 0.6) {
+    const position = planetPosition(planet, flight.steps);
+    if (Math.hypot(flight.x - position.x, flight.y - position.y) < planet.r + PROBE.radius * 0.6) {
+      flight.alive = false;
+      return EVENT_CRASH;
+    }
+  }
+  for (const asteroid of level.asteroids || []) {
+    if (Math.hypot(flight.x - asteroid.x, flight.y - asteroid.y) < asteroid.r + PROBE.radius * 0.6) {
       flight.alive = false;
       return EVENT_CRASH;
     }
@@ -45,8 +61,24 @@ export function stepFlight(level, flight, dt = STEP) {
     const star = level.stars[index];
     if (!flight.collected.has(index) && Math.hypot(flight.x - star.x, flight.y - star.y) <= STAR_PICKUP_RADIUS) flight.collected.add(index);
   }
+  if (flight.wormholeCooldown === 0) {
+    for (const wormhole of level.wormholes || []) {
+      if (Math.hypot(flight.x - wormhole.x, flight.y - wormhole.y) < wormhole.r) {
+        flight.x = wormhole.toX;
+        flight.y = wormhole.toY;
+        flight.wormholeCooldown = 36;
+        flight.events.push('wormhole');
+        break;
+      }
+    }
+  }
+  if (level.gates && flight.gatesPassed < level.gates.length) {
+    const gate = level.gates[flight.gatesPassed];
+    if (Math.hypot(flight.x - gate.x, flight.y - gate.y) < gate.r) flight.gatesPassed += 1;
+  }
   // Portal capture is generous enough to catch the probe's centre near the glowing ring edge.
-  if (Math.hypot(flight.x - level.portal.x, flight.y - level.portal.y) < level.portal.r + PROBE.radius * 0.5) {
+  if (flight.gatesPassed >= (level.gates ? level.gates.length : 0)
+    && Math.hypot(flight.x - level.portal.x, flight.y - level.portal.y) < level.portal.r + PROBE.radius * 0.5) {
     flight.alive = false;
     return EVENT_PORTAL;
   }

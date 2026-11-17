@@ -1,5 +1,5 @@
 // Browser boot and the single fixed-step animation loop.
-import { BEST_KEY, STEP } from './config.js';
+import { BEST_KEY, LEVELS, STEP } from './config.js';
 import { createWorld } from './world.js';
 import { createRenderer } from './render.js';
 import { createAudio } from './audio.js';
@@ -10,6 +10,9 @@ const params = new URLSearchParams(window.location.search);
 const parsedSeed = Number(params.get('seed'));
 const seed = params.has('seed') && Number.isFinite(parsedSeed) ? Math.trunc(parsedSeed) : Math.floor(Math.random() * 4294967296);
 const shot = params.get('shot');
+const parsedLevel = Number(params.get('level'));
+const level = params.has('level') && Number.isFinite(parsedLevel) && Number.isInteger(parsedLevel)
+  ? Math.max(0, Math.min(LEVELS.length - 1, parsedLevel)) : null;
 const canvas = document.querySelector('#game');
 const status = document.querySelector('#status');
 const world = createWorld(seed);
@@ -30,6 +33,7 @@ function playEvents(events) {
     else if (event === 'star') audio.star();
     else if (event === 'crash' || event === 'lost') audio.crash();
     else if (event === 'portal') audio.portal();
+    else if (event === 'wormhole') audio.portal();
     else if (event === 'win') audio.win();
     else if (event === 'click') audio.click();
   }
@@ -44,7 +48,7 @@ function saveBestIfEnded() {
 }
 
 if (shot === 'start' || shot === 'play' || shot === 'end') {
-  stageShot(shot, world);
+  stageShot(shot, world, level);
   previousScreen = world.screen;
   updateStatus();
   renderer.draw(world, best);

@@ -22,6 +22,8 @@ export function createWorld(seed = 0) {
       const level = this.level();
       this.launchesLeft = level.launches;
       this.collected = new Set();
+      this.collectedSteps = {};
+      this.levelStartStep = this.steps;
       this.flight = null;
       this.phase = 'aim';
       this.aim = { active: false, vx: 0, vy: 0, preview: null };
@@ -70,11 +72,14 @@ export function createWorld(seed = 0) {
       this.steps += 1;
       if (this.screen !== 'play' || this.phase !== 'fly' || !this.flight) return;
       const outcome = stepFlight(this.level(), this.flight, STEP);
+      for (const event of this.flight.events) this.events.push(event);
+      this.flight.events = [];
       this.trail.push({ x: this.flight.x, y: this.flight.y });
       if (this.trail.length > 90) this.trail.shift();
       for (const star of this.flight.collected) {
         if (!this.collected.has(star)) {
           this.collected.add(star);
+          this.collectedSteps[star] = this.steps;
           this.events.push('star');
         }
       }

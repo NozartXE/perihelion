@@ -69,7 +69,7 @@ function startSolverFlight(world) {
   return simulateFlight(level, vx, vy, 12).steps;
 }
 
-export function stageShot(name, world) {
+export function stageShot(name, world, levelIndex = null) {
   if (name === 'start') {
     world.screen = 'title';
     world.steps += 120;
@@ -77,9 +77,18 @@ export function stageShot(name, world) {
   }
   world.startGame();
   if (name === 'play') {
+    const level = levelIndex !== null ? levelIndex : 6;
+    if (level !== 0) world.loadLevel(level);
+    world.screen = 'play';
+  }
+  if (name === 'end' && levelIndex !== null) {
+    world.loadLevel(levelIndex);
+    world.screen = 'play';
+  }
+  if (name === 'play') {
     const totalSteps = startSolverFlight(world);
-    const target = Math.max(1, Math.floor(totalSteps * 0.60));
-    for (let i = 0; i < target && world.screen === 'play'; i += 1) world.step();
+    const target = Math.max(1, Math.floor(totalSteps * 0.58));
+    for (let i = 0; i < target && world.screen === 'play' && world.phase === 'fly'; i += 1) world.step();
     return { screen: 'play' };
   }
   if (name === 'end') {
